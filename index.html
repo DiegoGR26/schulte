@@ -131,7 +131,12 @@
 
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    const supabaseUrl = 'https://rqrumjpgcgelsfvtrhoj.supabase.co';
+    const supabaseKey = 'PEGA_AQUI_TU_SUPABASE_PUBLISHABLE_KEY';
+    const db = window.supabase.createClient(supabaseUrl, supabaseKey);
+
     const TOTAL_NUMEROS = 25;
     let numeroSiguiente = 1;
     let errores = 0;
@@ -153,6 +158,21 @@
     elPartidas.textContent = partidas;
     if (mejorTiempo !== null) {
       elMejorTiempo.textContent = mejorTiempo.toFixed(2);
+    }
+
+    async function guardarEnBaseDeDatos(tiempoFinal, totalErrores) {
+      const { error } = await db
+        .from('partidas_schulte')
+        .insert([
+          {
+            tiempo_segundos: parseFloat(tiempoFinal.toFixed(2)),
+            errores: totalErrores
+          }
+        ]);
+
+      if (error) {
+        console.error('Error al guardar:', error.message);
+      }
     }
 
     function generarNumerosAleatorios() {
@@ -189,6 +209,8 @@
         localStorage.setItem('schulte_mejor', mejorTiempo);
         elMejorTiempo.textContent = mejorTiempo.toFixed(2);
       }
+
+      guardarEnBaseDeDatos(tiempoFinal, errores);
 
       setTimeout(() => {
         alert(`¡Tabla completada!\n\nTiempo total: ${tiempoFinal.toFixed(2)} s\nTotal de errores: ${errores}`);
